@@ -1,5 +1,6 @@
 import unittest
-from app.auth import validate_registration, hash_password, register_user
+from app.auth import validate_registration, hash_password, validate_login, login_user, logout_user
+from app.db import get_user_by_email
 from app.captcha import validate_captcha
 
 
@@ -40,6 +41,28 @@ class TestCaptcha(unittest.TestCase):
 
     def test_invalid_captcha(self):
         self.assertFalse(validate_captcha("xyz", "AB123"))
+
+class TestLogin(unittest.TestCase):
+
+    def test_valid_login(self):
+        error, user = validate_login("ichocska@example.com", "Pass1234")
+        self.assertIsNone(error)
+        self.assertEqual(user['email'], "ichocska@example.com")
+
+    def test_invalid_email(self):
+        error, user = validate_login("cskaicho@example.com", "Pass1234")
+        self.assertEqual(error, "User not found")
+        self.assertIsNone(user)
+
+    def test_invalid_password(self):
+        error, user = validate_login("ichocska@example.com", "WrongPass123")
+        self.assertEqual(error, "Invalid password")
+        self.assertIsNone(user)
+
+class TestLogout(unittest.TestCase):
+    def test_logout(self):
+        result = logout_user()
+        self.assertEqual(result, "Logged out successfully")
 
 if __name__ == "__main__":
     unittest.main()
