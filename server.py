@@ -11,7 +11,7 @@ class SimpleHandler(BaseHTTPRequestHandler):
             self.send_response(200)
             self.send_header("Content-type", "text/html")
             self.end_headers()
-            with open("../templates/register.html", "r", encoding="utf-8") as f:
+            with open("templates/register.html", "r", encoding="utf-8") as f:
                 self.wfile.write(f.read().encode())
         elif self.path.startswith("/static/"):
             self.serve_static()

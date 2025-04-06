@@ -1,7 +1,7 @@
 import re
 import hashlib
-from db import insert_user
-from captcha import validate_captcha
+from app.db import insert_user
+from app.captcha import validate_captcha
 
 def validate_registration(name, email, password):
     if not re.match(r"^[A-Za-z]{2,}( [A-Za-z]{2,})$", name):
