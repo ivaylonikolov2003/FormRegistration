@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Update Profile</title>
+</head>
+<body>
+    <div class="container">
+        <h2>Update Profile</h2>
+        <form method="POST" action="/update_profile">
+            <label for="name">New Full Name:</label><br>
+            <input type="text" id="name" name="name" required><br><br>
+
+            <label for="password">New Password:</label><br>
+            <input type="password" id="password" name="password" required><br><br>
+
+            <button type="submit">Save Changes</button>
+        </form>
+
+        <br>
+        <a href="/dashboard">← Back to Dashboard</a>
+    </div>
+</body>
+</html>
