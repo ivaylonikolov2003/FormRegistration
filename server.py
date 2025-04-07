@@ -8,7 +8,6 @@ import random
 import string
 
 class SimpleHandler(BaseHTTPRequestHandler):
-
     def do_GET(self):
         routes = {
             "/": self.redirect_to_login,
@@ -54,12 +53,15 @@ class SimpleHandler(BaseHTTPRequestHandler):
             html = html.replace("<!--ERROR-->", f"<p style='color:red;'>{error_message}</p>")
             self.wfile.write(html.encode())
 
-    def render_login_page(self):
+    def render_login_page(self, error_message=""):
         self.send_response(200)
         self.send_header("Content-type", "text/html")
         self.end_headers()
         with open("templates/login.html", "r", encoding="utf-8") as f:
-            self.wfile.write(f.read().encode())
+            html = f.read()
+            error_html = f"<div class='error-message'>{error_message}</div>" if error_message else ""
+            html = html.replace("<!--ERROR-->", error_html)
+            self.wfile.write(html.encode())
 
     def render_dashboard_page(self):
         if not self.is_authenticated():
@@ -130,10 +132,7 @@ class SimpleHandler(BaseHTTPRequestHandler):
 
         error, user = login_user(email, password)
         if error:
-            self.send_response(200)
-            self.send_header("Content-type", "text/html")
-            self.end_headers()
-            self.wfile.write(f"<h3>Error: {error}</h3>".encode())
+            self.render_login_page(f"Error: {error}")
         else:
             self.send_response(302)
             self.set_cookie("user_id", user["id"])
@@ -149,8 +148,9 @@ class SimpleHandler(BaseHTTPRequestHandler):
         new_name = data.get("name", "")
         new_password = data.get("password", "")
         user_id = self.get_cookie("user_id")
+        hashed_password = hash_password(new_password)
 
-        success = update_user_profile(user_id, new_name, hash_password(new_password))
+        success = update_user_profile(user_id, new_name, hashed_password)
         if success:
             self.send_response(302)
             self.send_header("Set-Cookie", "user_id=; Path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT")
