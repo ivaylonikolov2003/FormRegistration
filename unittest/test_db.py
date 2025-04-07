@@ -1,77 +1,60 @@
 import unittest
-import mysql.connector
-from app.db import get_connection
+from app.db import (
+    get_connection, insert_user, get_user_by_email,
+    get_user_by_id, update_user_profile, hash_password, check_password
+)
 
-TEST_TABLE = "users_test"
+TEST_NAME = "Ivailo Nikolov"
+TEST_EMAIL = "ichocska12@example.com"
+TEST_PASSWORD = "Pass1234"
 
-def create_test_table():
+def prepare_test_user():
     conn = get_connection()
     cursor = conn.cursor()
-    cursor.execute(f"""
-        CREATE TABLE IF NOT EXISTS {TEST_TABLE} (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            name VARCHAR(100),
-            email VARCHAR(100) UNIQUE,
-            password_hash VARCHAR(256)
-        )
-    """)
+    cursor.execute("DELETE FROM users WHERE email = %s", (TEST_EMAIL,))
     conn.commit()
+
+    hashed_password = hash_password(TEST_PASSWORD)
+    insert_user(TEST_NAME, TEST_EMAIL, hashed_password)
+
     cursor.close()
     conn.close()
 
-def clear_test_table():
-    conn = get_connection()
-    cursor = conn.cursor()
-    cursor.execute(f"DELETE FROM {TEST_TABLE}")
-    conn.commit()
-    cursor.close()
-    conn.close()
-
-def drop_test_table():
-    conn = get_connection()
-    cursor = conn.cursor()
-    cursor.execute(f"DROP TABLE IF EXISTS {TEST_TABLE}")
-    conn.commit()
-    cursor.close()
-    conn.close()
-
-def insert_user_test(name, email, password_hash):
-    try:
-        conn = get_connection()
-        cursor = conn.cursor()
-        cursor.execute(
-            f"INSERT INTO {TEST_TABLE} (name, email, password_hash) VALUES (%s, %s, %s)",
-            (name, email, password_hash)
-        )
-        conn.commit()
-        return True
-    except mysql.connector.IntegrityError:
-        return False
-    finally:
-        cursor.close()
-        conn.close()
-
-class TestDatabase(unittest.TestCase):
-
-    @classmethod
-    def setUpClass(cls):
-        create_test_table()
+class TestDatabaseReal(unittest.TestCase):
 
     def setUp(self):
-        clear_test_table()
-
-    def test_insert_user_success(self):
-        result = insert_user_test("Alice Johnson", "alice@test.com", "hash123")
-        self.assertTrue(result)
+        prepare_test_user()
 
     def test_insert_user_duplicate_email(self):
-        insert_user_test("Alice Johnson", "alice@test.com", "hash123")
-        result = insert_user_test("Bob Smith", "alice@test.com", "hash456")
+        result = insert_user(TEST_NAME, TEST_EMAIL, hash_password(TEST_PASSWORD))
         self.assertFalse(result)
 
-    @classmethod
-    def tearDownClass(cls):
-        drop_test_table()
+    def test_get_user_by_email(self):
+        user = get_user_by_email(TEST_EMAIL)
+        self.assertIsNotNone(user)
+        self.assertEqual(user['name'], TEST_NAME)
+
+    def test_get_user_by_id(self):
+        user = get_user_by_email(TEST_EMAIL)
+        fetched = get_user_by_id(user['id'])
+        self.assertIsNotNone(fetched)
+        self.assertEqual(fetched['email'], TEST_EMAIL)
+
+    def test_update_user_profile(self):
+        user = get_user_by_email(TEST_EMAIL)
+        new_name = "Icho Nikolov"
+        new_password = hash_password("NewPass123")
+        result = update_user_profile(user['id'], new_name, new_password)
+        self.assertTrue(result)
+
+        updated_user = get_user_by_id(user['id'])
+        self.assertEqual(updated_user['name'], new_name)
+        self.assertTrue(check_password("NewPass123", updated_user['password_hash']))
+
+    def test_check_password(self):
+        user = get_user_by_email(TEST_EMAIL)
+        self.assertTrue(check_password(TEST_PASSWORD, user['password_hash']))
+        self.assertFalse(check_password("WrongPassword", user['password_hash']))
 
 if __name__ == "__main__":
     unittest.main()
