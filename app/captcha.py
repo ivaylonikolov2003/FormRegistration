@@ -3,26 +3,39 @@ import io
 import random
 import string
 
+# Генерира случаен CAPTCHA текст (напр. "AB12C")
 def generate_captcha_text(length=5):
-    return ''.join(random.choices(string.ascii_uppercase + string.digits, k=length))
+    characters = string.ascii_uppercase + string.digits
+    return ''.join(random.choices(characters, k=length))
 
+# Създава изображение от текста
 def generate_captcha_image(text):
-    width, height = 150, 60
-    img = Image.new("RGB", (width, height), color=(255, 255, 255))
-    draw = ImageDraw.Draw(img)
+    image_width = 150
+    image_height = 60
+    background_color = (255, 255, 255)
+    text_color = (0, 0, 0)
+
+    # Създай бяло изображение
+    image = Image.new("RGB", (image_width, image_height), background_color)
+    draw = ImageDraw.Draw(image)
+
+    # Зареди шрифт
     try:
         font = ImageFont.truetype("arial.ttf", 32)
     except IOError:
         font = ImageFont.load_default()
 
+    # Начертай всеки символ с малко разместване
     for i, char in enumerate(text):
         x = 10 + i * 25 + random.randint(-2, 2)
         y = random.randint(5, 15)
-        draw.text((x, y), char, font=font, fill=(0, 0, 0))
+        draw.text((x, y), char, font=font, fill=text_color)
 
+    # Запази изображението в паметта като PNG
     output = io.BytesIO()
-    img.save(output, format="PNG")
+    image.save(output, format="PNG")
     return output.getvalue()
 
-def validate_captcha(input_text, expected_text):
-    return input_text.strip().upper() == expected_text.upper()
+# Проверява дали въведеният код съвпада с генерирания
+def validate_captcha(user_input, correct_text):
+    return user_input.strip().upper() == correct_text.upper()
