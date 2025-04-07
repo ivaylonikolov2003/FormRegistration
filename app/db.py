@@ -10,16 +10,18 @@ def get_connection():
     )
 
 def hash_password(password):
-    return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
+    hashed = bcrypt.hashpw(password.encode(), bcrypt.gensalt())
+    return hashed.decode()
 
-def check_password(password, hashed):
-    return bcrypt.checkpw(password.encode(), hashed.encode())
+def check_password(password, hashed_password):
+    return bcrypt.checkpw(password.encode(), hashed_password.encode())
 
 def insert_user(name, email, password_hash, conn=None):
-    own_connection = False
+    new_conn = False
     if conn is None:
         conn = get_connection()
-        own_connection = True
+        new_conn = True
+
     try:
         cursor = conn.cursor()
         cursor.execute(
@@ -32,18 +34,19 @@ def insert_user(name, email, password_hash, conn=None):
         return False
     finally:
         cursor.close()
-        if own_connection:
+        if new_conn:
             conn.close()
 
 def get_user_by_email(email):
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
     try:
-        conn = get_connection()
-        cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT * FROM users WHERE LOWER(email) = LOWER(%s)", (email,))
+        query = "SELECT * FROM users WHERE LOWER(email) = LOWER(%s)"
+        cursor.execute(query, (email,))
         user = cursor.fetchone()
         return user
     except Exception as e:
-        print(f"Error: {e}")
+        print(f"Database error: {e}")
         return None
     finally:
         cursor.close()
@@ -56,7 +59,7 @@ def get_user_by_id(user_id):
         cursor.execute("SELECT * FROM users WHERE id = %s", (user_id,))
         return cursor.fetchone()
     except Exception as e:
-        print(f"Error: {e}")
+        print("Error fetching user by ID:", e)
         return None
     finally:
         cursor.close()
@@ -71,10 +74,7 @@ def validate_login(email, password):
     return None, user
 
 def login_user(email, password):
-    error, user = validate_login(email, password)
-    if error:
-        return error, None
-    return None, user
+    return validate_login(email, password)
 
 def logout_user():
     return "Logged out successfully"
@@ -84,13 +84,13 @@ def update_user_profile(user_id, new_name, new_password_hash):
         conn = get_connection()
         cursor = conn.cursor()
         cursor.execute(
-            "UPDATE users SET name=%s, password_hash=%s WHERE id=%s",
+            "UPDATE users SET name = %s, password_hash = %s WHERE id = %s",
             (new_name, new_password_hash, user_id)
         )
         conn.commit()
         return cursor.rowcount > 0
     except Exception as e:
-        print(f"Update error: {e}")
+        print("Error updating profile:", e)
         return False
     finally:
         cursor.close()
