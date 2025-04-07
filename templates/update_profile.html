@@ -1,24 +1,87 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Update Profile</title>
+  <meta charset="UTF-8">
+  <title>Update Profile</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #eee;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .container {
+      background: white;
+      padding: 25px;
+      border-radius: 6px;
+      box-shadow: 0 0 5px rgba(0,0,0,0.1);
+      width: 300px;
+      text-align: center;
+    }
+
+    h2 {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      text-align: left;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+
+    input[type="text"],
+    input[type="password"] {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 15px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+
+    button {
+      width: 100%;
+      padding: 10px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+
+    a {
+      display: inline-block;
+      margin-top: 15px;
+      color: #4CAF50;
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h2>Update Profile</h2>
-        <form method="POST" action="/update_profile">
-            <label for="name">New Full Name:</label><br>
-            <input type="text" id="name" name="name" required><br><br>
+  <div class="container">
+    <h2>Update Profile</h2>
+    <form method="POST" action="/update_profile">
+      <label for="name">New Full Name:</label>
+      <input type="text" id="name" name="name" required>
 
-            <label for="password">New Password:</label><br>
-            <input type="password" id="password" name="password" required><br><br>
+      <label for="password">New Password:</label>
+      <input type="password" id="password" name="password" required>
 
-            <button type="submit">Save Changes</button>
-        </form>
-
-        <br>
-        <a href="/dashboard">← Back to Dashboard</a>
-    </div>
+      <button type="submit">Save Changes</button>
+    </form>
+    <a href="/dashboard">← Back to Dashboard</a>
+  </div>
 </body>
 </html>
