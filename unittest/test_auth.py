@@ -5,7 +5,7 @@ from app.auth import (
 )
 from app.db import (
     get_user_by_email, update_user_profile, insert_user,
-    get_connection, get_user_by_id
+    get_connection, get_user_by_id, check_password
 )
 from app.captcha import validate_captcha
 
@@ -38,8 +38,10 @@ class TestRegistrationValidation(unittest.TestCase):
         self.assertEqual(error, "Password must be at least 8 characters and include both letters and numbers.")
 
 class TestPasswordHashing(unittest.TestCase):
-    def test_same_password_same_hash(self):
-        self.assertEqual(hash_password("Test1234"), hash_password("Test1234"))
+    def test_password_matches_hash(self):
+        password = "Test1234"
+        hashed = hash_password(password)
+        self.assertTrue(check_password(password, hashed))
 
     def test_different_passwords_different_hashes(self):
         self.assertNotEqual(hash_password("Test1234"), hash_password("Another123"))
